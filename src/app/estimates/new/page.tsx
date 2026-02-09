@@ -14,6 +14,8 @@ import {
   Check,
   X,
   Package,
+  Wrench,
+  ChevronDown,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -60,13 +62,32 @@ interface MaterialRecord {
   sku?: string;
 }
 
+// ---------------------------------------------------------------------------
+// Responsive hook
+// ---------------------------------------------------------------------------
+
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mql = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
+    const handler = (e: MediaQueryListEvent | MediaQueryList) =>
+      setIsMobile(e.matches);
+    handler(mql);
+    mql.addEventListener("change", handler);
+    return () => mql.removeEventListener("change", handler);
+  }, [breakpoint]);
+
+  return isMobile;
+}
+
 // ============================================================================
 // MAIN PAGE COMPONENT
 // ============================================================================
 
 export default function NewEstimatePage() {
   const router = useRouter();
-  const store = useEstimateStore();
+  const isMobile = useIsMobile();
 
   const {
     currentStep,
@@ -93,7 +114,7 @@ export default function NewEstimatePage() {
     setSavedProjectId,
     getTotals,
     reset,
-  } = store;
+  } = useEstimateStore();
 
   // ---- Material picker state ----
   const [materialPickerOpen, setMaterialPickerOpen] = useState(false);
@@ -277,31 +298,47 @@ export default function NewEstimatePage() {
     toast.info("PDF export coming soon");
   };
 
-  // ------------------------------------------------------------------
-  // Reset on unmount? (optional: keep draft in zustand persist)
-  // ------------------------------------------------------------------
-
   // ====================================================================
   // RENDER
   // ====================================================================
 
+  const activeStep = WIZARD_STEPS.find((s) => s.id === currentStep);
+
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
+    <div className="mx-auto max-w-6xl px-3 py-4 sm:px-4 sm:py-8">
       {/* ============================================================= */}
       {/* STEP INDICATOR                                                */}
       {/* ============================================================= */}
-      <div className="mb-10">
+
+      {/* Mobile step indicator */}
+      <div className="mb-6 block md:hidden">
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-medium text-white/80">
+            Step {currentStep} of 5:{" "}
+            <span className="text-white">{activeStep?.title}</span>
+          </p>
+          <p className="text-xs text-white/40">{activeStep?.description}</p>
+        </div>
+        <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-white/10">
+          <div
+            className="h-full rounded-full bg-[#CC0000] transition-all duration-500 ease-out"
+            style={{ width: `${(currentStep / 5) * 100}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Desktop step indicator */}
+      <div className="mb-10 hidden md:block">
         <div className="flex items-center justify-between">
           {WIZARD_STEPS.map((step, idx) => {
             const isActive = currentStep === step.id;
             const isComplete = currentStep > step.id;
             return (
               <div key={step.id} className="flex flex-1 items-center">
-                {/* Dot / pill */}
+                {/* Circle */}
                 <button
                   type="button"
                   onClick={() => {
-                    // Allow jumping back but not forward past current + 1
                     if (step.id <= currentStep) setStep(step.id);
                   }}
                   className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition-all ${
@@ -315,8 +352,8 @@ export default function NewEstimatePage() {
                   {isComplete ? <Check className="h-4 w-4" /> : step.id}
                 </button>
 
-                {/* Label (hidden on small screens) */}
-                <div className="ml-3 hidden md:block">
+                {/* Label */}
+                <div className="ml-3">
                   <p
                     className={`text-sm font-medium ${
                       isActive
@@ -348,12 +385,13 @@ export default function NewEstimatePage() {
       {/* ============================================================= */}
       {/* STEP CONTENT                                                  */}
       {/* ============================================================= */}
-      <div className="glass rounded-2xl p-6 md:p-8">
+      <div className="glass rounded-2xl p-4 sm:p-6 md:p-8 transition-all duration-300">
         {/* ------- STEP 1: PROJECT INFO ------- */}
         {currentStep === 1 && (
           <StepProjectInfo
             projectInfo={projectInfo}
             setProjectInfo={setProjectInfo}
+            isMobile={isMobile}
           />
         )}
 
@@ -371,6 +409,7 @@ export default function NewEstimatePage() {
             addCustomItem={addCustomItem}
             addLaborOnlyItem={addLaborOnlyItem}
             totals={totals}
+            isMobile={isMobile}
           />
         )}
 
@@ -381,11 +420,14 @@ export default function NewEstimatePage() {
             setOverheadPct={setOverheadPct}
             profitPct={profitPct}
             setProfitPct={setProfitPct}
+            laborRate={laborRate}
+            setLaborRate={setLaborRate}
             totals={totals}
             notes={notes}
             setNotes={setNotes}
             terms={terms}
             setTerms={setTerms}
+            isMobile={isMobile}
           />
         )}
 
@@ -403,6 +445,8 @@ export default function NewEstimatePage() {
             saveAsDraft={saveAsDraft}
             downloadExcel={downloadExcel}
             downloadPdf={downloadPdf}
+            reset={reset}
+            isMobile={isMobile}
           />
         )}
       </div>
@@ -410,15 +454,15 @@ export default function NewEstimatePage() {
       {/* ============================================================= */}
       {/* NAVIGATION                                                    */}
       {/* ============================================================= */}
-      <div className="mt-6 flex items-center justify-between">
+      <div className="mt-4 sm:mt-6 flex items-center justify-between">
         <button
           type="button"
           onClick={prevStep}
           disabled={currentStep === 1}
-          className="glass glass-hover inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium text-white/70 transition-all disabled:pointer-events-none disabled:opacity-30"
+          className="glass glass-hover inline-flex items-center gap-2 rounded-lg px-4 py-2.5 sm:px-5 text-sm font-medium text-white/70 transition-all disabled:pointer-events-none disabled:opacity-30"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back
+          <span className="hidden sm:inline">Back</span>
         </button>
 
         {currentStep < 5 ? (
@@ -426,22 +470,41 @@ export default function NewEstimatePage() {
             type="button"
             onClick={nextStep}
             disabled={!canAdvance}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#CC0000] px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-red-900/30 transition-all hover:bg-[#E60000] disabled:opacity-40 disabled:pointer-events-none"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#CC0000] px-5 py-2.5 sm:px-6 text-sm font-semibold text-white shadow-lg shadow-red-900/30 transition-all hover:bg-[#E60000] disabled:opacity-40 disabled:pointer-events-none"
           >
             Next
             <ArrowRight className="h-4 w-4" />
+          </button>
+        ) : !saved ? (
+          <button
+            type="button"
+            onClick={saveAsDraft}
+            disabled={saving}
+            className="inline-flex items-center gap-2 rounded-lg bg-[#CC0000] px-5 py-2.5 sm:px-6 text-sm font-semibold text-white shadow-lg shadow-red-900/30 transition-all hover:bg-[#E60000] disabled:opacity-50"
+          >
+            {saving ? (
+              <>
+                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4" />
+                Save as Draft
+              </>
+            )}
           </button>
         ) : (
           <button
             type="button"
             onClick={() => {
               reset();
-              router.push("/projects");
+              router.push("/estimates/new");
             }}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#CC0000] px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-red-900/30 transition-all hover:bg-[#E60000]"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#CC0000] px-5 py-2.5 sm:px-6 text-sm font-semibold text-white shadow-lg shadow-red-900/30 transition-all hover:bg-[#E60000]"
           >
-            Finish &amp; Close
-            <Check className="h-4 w-4" />
+            <Plus className="h-4 w-4" />
+            New Estimate
           </button>
         )}
       </div>
@@ -450,7 +513,7 @@ export default function NewEstimatePage() {
       {/* MATERIAL PICKER MODAL                                         */}
       {/* ============================================================= */}
       <Dialog open={materialPickerOpen} onOpenChange={setMaterialPickerOpen}>
-        <DialogContent className="glass border-white/10 sm:max-w-2xl">
+        <DialogContent className="glass border-white/10 sm:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="text-white">
               <Package className="mr-2 inline-block h-5 w-5 text-[#CC0000]" />
@@ -465,12 +528,12 @@ export default function NewEstimatePage() {
               placeholder="Search materials..."
               value={materialSearch}
               onChange={(e) => setMaterialSearch(e.target.value)}
-              className="glass-input pl-9"
+              className="glass-input pl-9 h-12 sm:h-10"
             />
           </div>
 
           {/* Materials list */}
-          <div className="max-h-72 space-y-1 overflow-y-auto rounded-lg border border-white/5 bg-black/20 p-2">
+          <div className="flex-1 min-h-0 max-h-64 sm:max-h-72 space-y-1 overflow-y-auto rounded-lg border border-white/5 bg-black/20 p-2">
             {materialsLoading ? (
               <p className="py-8 text-center text-sm text-white/40">
                 Loading materials...
@@ -485,20 +548,22 @@ export default function NewEstimatePage() {
                   key={m.id}
                   type="button"
                   onClick={() => setSelectedMaterial(m)}
-                  className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm transition-all ${
+                  className={`flex w-full items-center justify-between rounded-lg px-3 py-3 sm:py-2.5 text-left text-sm transition-all ${
                     selectedMaterial?.id === m.id
                       ? "bg-[#CC0000]/20 ring-1 ring-[#CC0000]/40"
-                      : "hover:bg-white/5"
+                      : "hover:bg-white/5 active:bg-white/10"
                   }`}
                 >
-                  <div>
-                    <p className="font-medium text-white/90">{m.name}</p>
-                    <p className="text-xs text-white/40">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-white/90 truncate">
+                      {m.name}
+                    </p>
+                    <p className="text-xs text-white/40 truncate">
                       {m.category}
                       {m.sku ? ` \u00B7 ${m.sku}` : ""}
                     </p>
                   </div>
-                  <span className="price text-sm text-white/70">
+                  <span className="price ml-3 shrink-0 text-sm text-white/70">
                     {fmt(m.unitPrice)}/{m.unit}
                   </span>
                 </button>
@@ -508,35 +573,37 @@ export default function NewEstimatePage() {
 
           {/* Selected material + quantity */}
           {selectedMaterial && (
-            <div className="flex items-end gap-4 rounded-lg border border-white/5 bg-black/20 p-4">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-white/90">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4 rounded-lg border border-white/5 bg-black/20 p-4">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-white/90 truncate">
                   {selectedMaterial.name}
                 </p>
                 <p className="price text-xs text-white/50">
                   {fmt(selectedMaterial.unitPrice)} per {selectedMaterial.unit}
                 </p>
               </div>
-              <div className="w-28">
-                <Label className="text-xs text-white/50">Quantity</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  value={materialQty}
-                  onChange={(e) =>
-                    setMaterialQty(Math.max(1, Number(e.target.value) || 1))
-                  }
-                  className="glass-input"
-                />
+              <div className="flex items-end gap-3">
+                <div className="w-24">
+                  <Label className="text-xs text-white/50">Quantity</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={materialQty}
+                    onChange={(e) =>
+                      setMaterialQty(Math.max(1, Number(e.target.value) || 1))
+                    }
+                    className="glass-input h-12 sm:h-10"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={confirmMaterialPick}
+                  className="inline-flex items-center gap-2 rounded-lg bg-[#CC0000] px-5 py-3 sm:py-2 text-sm font-semibold text-white transition-all hover:bg-[#E60000] active:scale-95"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={confirmMaterialPick}
-                className="inline-flex items-center gap-2 rounded-lg bg-[#CC0000] px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-[#E60000]"
-              >
-                <Plus className="h-4 w-4" />
-                Add
-              </button>
             </div>
           )}
         </DialogContent>
@@ -562,19 +629,26 @@ interface StepProjectInfoProps {
     description: string;
   };
   setProjectInfo: (info: Partial<StepProjectInfoProps["projectInfo"]>) => void;
+  isMobile: boolean;
 }
 
-function StepProjectInfo({ projectInfo, setProjectInfo }: StepProjectInfoProps) {
+function StepProjectInfo({
+  projectInfo,
+  setProjectInfo,
+  isMobile,
+}: StepProjectInfoProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-white">Project Information</h2>
+        <h2 className="text-lg sm:text-xl font-semibold text-white">
+          Project Information
+        </h2>
         <p className="mt-1 text-sm text-white/50">
           Enter the basic details for this estimate.
         </p>
       </div>
 
-      <div className="grid gap-5 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-5 md:grid-cols-2">
         {/* Project Name */}
         <div className="md:col-span-2">
           <Label className="mb-1.5 text-white/70">
@@ -584,7 +658,7 @@ function StepProjectInfo({ projectInfo, setProjectInfo }: StepProjectInfoProps) 
             placeholder="e.g. Office Rewire - 123 Main St"
             value={projectInfo.name}
             onChange={(e) => setProjectInfo({ name: e.target.value })}
-            className="glass-input"
+            className="glass-input h-12 sm:h-10"
           />
         </div>
 
@@ -597,7 +671,7 @@ function StepProjectInfo({ projectInfo, setProjectInfo }: StepProjectInfoProps) 
             placeholder="John Smith"
             value={projectInfo.clientName}
             onChange={(e) => setProjectInfo({ clientName: e.target.value })}
-            className="glass-input"
+            className="glass-input h-12 sm:h-10"
           />
         </div>
 
@@ -608,7 +682,7 @@ function StepProjectInfo({ projectInfo, setProjectInfo }: StepProjectInfoProps) 
             placeholder="ABC Corp (optional)"
             value={projectInfo.clientCompany}
             onChange={(e) => setProjectInfo({ clientCompany: e.target.value })}
-            className="glass-input"
+            className="glass-input h-12 sm:h-10"
           />
         </div>
 
@@ -621,51 +695,51 @@ function StepProjectInfo({ projectInfo, setProjectInfo }: StepProjectInfoProps) 
             placeholder="123 Main Street"
             value={projectInfo.address}
             onChange={(e) => setProjectInfo({ address: e.target.value })}
-            className="glass-input"
+            className="glass-input h-12 sm:h-10"
           />
         </div>
 
-        {/* City */}
-        <div>
-          <Label className="mb-1.5 text-white/70">City</Label>
-          <Input
-            placeholder="Miami"
-            value={projectInfo.city}
-            onChange={(e) => setProjectInfo({ city: e.target.value })}
-            className="glass-input"
-          />
+        {/* City / State / Zip row */}
+        <div className="md:col-span-2">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+            <div className="col-span-2 sm:col-span-2">
+              <Label className="mb-1.5 text-white/70">City</Label>
+              <Input
+                placeholder="Miami"
+                value={projectInfo.city}
+                onChange={(e) => setProjectInfo({ city: e.target.value })}
+                className="glass-input h-12 sm:h-10"
+              />
+            </div>
+            <div>
+              <Label className="mb-1.5 text-white/70">State</Label>
+              <Input
+                placeholder="FL"
+                maxLength={2}
+                value={projectInfo.state}
+                onChange={(e) =>
+                  setProjectInfo({ state: e.target.value.toUpperCase() })
+                }
+                className="glass-input h-12 sm:h-10"
+              />
+            </div>
+            <div>
+              <Label className="mb-1.5 text-white/70">ZIP</Label>
+              <Input
+                placeholder="33101"
+                maxLength={10}
+                value={projectInfo.zip}
+                onChange={(e) => setProjectInfo({ zip: e.target.value })}
+                className="glass-input h-12 sm:h-10"
+              />
+            </div>
+          </div>
         </div>
 
-        {/* State */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label className="mb-1.5 text-white/70">State</Label>
-            <Input
-              placeholder="FL"
-              maxLength={2}
-              value={projectInfo.state}
-              onChange={(e) =>
-                setProjectInfo({ state: e.target.value.toUpperCase() })
-              }
-              className="glass-input"
-            />
-          </div>
-          <div>
-            <Label className="mb-1.5 text-white/70">ZIP</Label>
-            <Input
-              placeholder="33101"
-              maxLength={10}
-              value={projectInfo.zip}
-              onChange={(e) => setProjectInfo({ zip: e.target.value })}
-              className="glass-input"
-            />
-          </div>
-        </div>
-
-        {/* Project Type (segmented buttons) */}
+        {/* Project Type */}
         <div className="md:col-span-2">
           <Label className="mb-2 text-white/70">Project Type</Label>
-          <div className="inline-flex rounded-lg border border-white/10 bg-black/20 p-1">
+          <div className="inline-flex w-full sm:w-auto rounded-lg border border-white/10 bg-black/20 p-1">
             {PROJECT_TYPES.map((pt) => (
               <button
                 key={pt.value}
@@ -675,7 +749,7 @@ function StepProjectInfo({ projectInfo, setProjectInfo }: StepProjectInfoProps) 
                     type: pt.value as "residential" | "commercial" | "industrial",
                   })
                 }
-                className={`rounded-md px-5 py-2 text-sm font-medium transition-all ${
+                className={`flex-1 sm:flex-initial rounded-md px-4 sm:px-5 py-2.5 sm:py-2 text-sm font-medium transition-all ${
                   projectInfo.type === pt.value
                     ? "bg-[#CC0000] text-white shadow"
                     : "text-white/50 hover:text-white/80"
@@ -704,48 +778,28 @@ function StepProjectInfo({ projectInfo, setProjectInfo }: StepProjectInfoProps) 
 }
 
 // ============================================================================
-// STEP 2 - UPLOAD PLANS
+// STEP 2 - UPLOAD PLANS (STUB)
 // ============================================================================
 
 function StepUploadPlans({ onSkip }: { onSkip: () => void }) {
-  const [isDragging, setIsDragging] = useState(false);
-
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-white">Upload Plans</h2>
+        <h2 className="text-lg sm:text-xl font-semibold text-white">
+          Upload Plans
+        </h2>
         <p className="mt-1 text-sm text-white/50">
-          Upload electrical drawings, panel schedules, or specs. You can skip
-          this step and add them later.
+          Upload electrical drawings, panel schedules, or specs.
         </p>
       </div>
 
       {/* Dropzone */}
-      <div
-        onDragOver={(e) => {
-          e.preventDefault();
-          setIsDragging(true);
-        }}
-        onDragLeave={() => setIsDragging(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setIsDragging(false);
-          toast.info("File uploads will be available soon");
-        }}
-        className={`flex min-h-[280px] flex-col items-center justify-center rounded-xl border-2 border-dashed transition-all ${
-          isDragging
-            ? "border-[#CC0000] bg-[#CC0000]/5"
-            : "border-white/15 bg-white/[0.02]"
-        }`}
-      >
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/5">
-          <Upload className="h-7 w-7 text-white/30" />
+      <div className="flex min-h-[220px] sm:min-h-[280px] flex-col items-center justify-center rounded-xl border-2 border-dashed border-white/15 bg-white/[0.02]">
+        <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-white/5">
+          <Upload className="h-6 w-6 sm:h-7 sm:w-7 text-white/30" />
         </div>
-        <p className="mt-4 text-sm font-medium text-white/60">
-          Drag &amp; drop files here, or{" "}
-          <span className="cursor-pointer text-[#CC0000] hover:underline">
-            browse
-          </span>
+        <p className="mt-4 text-sm font-medium text-white/50">
+          Coming soon &mdash; skip to next step
         </p>
         <p className="mt-1 text-xs text-white/30">
           PDF, DWG, DXF, or image files up to 50 MB
@@ -757,7 +811,7 @@ function StepUploadPlans({ onSkip }: { onSkip: () => void }) {
         <button
           type="button"
           onClick={onSkip}
-          className="text-sm text-white/40 transition-colors hover:text-white/70"
+          className="text-sm text-white/40 transition-colors hover:text-white/70 active:text-white/90 py-2"
         >
           Skip this step &rarr;
         </button>
@@ -802,6 +856,7 @@ interface StepBuildEstimateProps {
     profit: number;
     grandTotal: number;
   };
+  isMobile: boolean;
 }
 
 function StepBuildEstimate({
@@ -813,14 +868,18 @@ function StepBuildEstimate({
   addCustomItem,
   addLaborOnlyItem,
   totals,
+  isMobile,
 }: StepBuildEstimateProps) {
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header + add buttons */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-white">Build Estimate</h2>
+          <h2 className="text-lg sm:text-xl font-semibold text-white">
+            Build Estimate
+          </h2>
           <p className="mt-1 text-sm text-white/50">
-            Add materials, labor, and custom items to your estimate.
+            Add materials, labor, and custom items.
           </p>
         </div>
 
@@ -829,39 +888,246 @@ function StepBuildEstimate({
           <button
             type="button"
             onClick={openMaterialPicker}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#CC0000] px-4 py-2 text-sm font-medium text-white transition-all hover:bg-[#E60000]"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#CC0000] px-3 py-2.5 sm:px-4 sm:py-2 text-sm font-medium text-white transition-all hover:bg-[#E60000] active:scale-95"
           >
             <Package className="h-4 w-4" />
-            Add from Materials
+            <span className="hidden xs:inline">From</span> Materials
           </button>
           <button
             type="button"
             onClick={addCustomItem}
-            className="glass glass-hover inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white/80 transition-all"
+            className="glass glass-hover inline-flex items-center gap-2 rounded-lg px-3 py-2.5 sm:px-4 sm:py-2 text-sm font-medium text-white/80 transition-all active:scale-95"
           >
             <Plus className="h-4 w-4" />
-            Add Custom Item
+            Custom Item
           </button>
           <button
             type="button"
             onClick={addLaborOnlyItem}
-            className="glass glass-hover inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white/80 transition-all"
+            className="glass glass-hover inline-flex items-center gap-2 rounded-lg px-3 py-2.5 sm:px-4 sm:py-2 text-sm font-medium text-white/80 transition-all active:scale-95"
           >
-            <Plus className="h-4 w-4" />
-            Add Labor Only
+            <Wrench className="h-4 w-4" />
+            Labor Only
           </button>
         </div>
       </div>
 
-      {/* Line Items Table */}
+      {/* Empty state */}
       {lineItems.length === 0 ? (
-        <div className="flex min-h-[200px] flex-col items-center justify-center rounded-xl border border-dashed border-white/10 bg-white/[0.02]">
+        <div className="flex min-h-[180px] sm:min-h-[200px] flex-col items-center justify-center rounded-xl border border-dashed border-white/10 bg-white/[0.02]">
           <Package className="h-10 w-10 text-white/15" />
           <p className="mt-3 text-sm text-white/40">
             No items yet. Add materials or custom items above.
           </p>
         </div>
+      ) : isMobile ? (
+        /* ============================================================= */
+        /* MOBILE: LINE ITEM CARDS                                       */
+        /* ============================================================= */
+        <div className="space-y-3 pb-28">
+          {lineItems.map((item) => {
+            const materialCost = item.quantity * item.unitPrice;
+            const laborCost = item.laborHours * (item.laborRate || laborRate);
+            const lineTotal = materialCost + laborCost;
+
+            return (
+              <div
+                key={item.tempId}
+                className="rounded-xl border border-white/5 bg-black/20 p-3 space-y-3"
+              >
+                {/* Row 1: Description (full width) */}
+                <input
+                  type="text"
+                  value={item.description}
+                  placeholder="Item description"
+                  onBlur={(e) =>
+                    updateLineItem(item.tempId, {
+                      description: e.target.value,
+                    })
+                  }
+                  onChange={(e) =>
+                    updateLineItem(item.tempId, {
+                      description: e.target.value,
+                    })
+                  }
+                  className="w-full rounded-lg border border-white/5 bg-white/[0.03] px-3 py-3 text-sm text-white/90 placeholder:text-white/25 outline-none focus:border-[#CC0000]/30 focus:bg-white/[0.05] transition-colors"
+                />
+
+                {/* Row 2: Category + Unit (side by side) */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="mb-1 block text-[10px] uppercase tracking-wider text-white/30">
+                      Category
+                    </label>
+                    <select
+                      value={item.category}
+                      onChange={(e) =>
+                        updateLineItem(item.tempId, {
+                          category: e.target.value,
+                        })
+                      }
+                      className="w-full rounded-lg border border-white/5 bg-white/[0.03] px-2 py-3 text-sm text-white/80 outline-none focus:border-[#CC0000]/30 cursor-pointer appearance-none"
+                    >
+                      {LINE_ITEM_CATEGORIES.map((c) => (
+                        <option
+                          key={c}
+                          value={c}
+                          className="bg-neutral-900 text-white"
+                        >
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-[10px] uppercase tracking-wider text-white/30">
+                      Unit
+                    </label>
+                    <select
+                      value={item.unit}
+                      onChange={(e) =>
+                        updateLineItem(item.tempId, { unit: e.target.value })
+                      }
+                      className="w-full rounded-lg border border-white/5 bg-white/[0.03] px-2 py-3 text-sm text-white/80 outline-none focus:border-[#CC0000]/30 cursor-pointer appearance-none"
+                    >
+                      {UNITS.map((u) => (
+                        <option
+                          key={u.value}
+                          value={u.value}
+                          className="bg-neutral-900 text-white"
+                        >
+                          {u.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Row 3: Qty + Unit Price (side by side) */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="mb-1 block text-[10px] uppercase tracking-wider text-white/30">
+                      Quantity
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      step="any"
+                      value={item.quantity}
+                      onBlur={(e) =>
+                        updateLineItem(item.tempId, {
+                          quantity: Number(e.target.value) || 0,
+                        })
+                      }
+                      onChange={(e) =>
+                        updateLineItem(item.tempId, {
+                          quantity: Number(e.target.value) || 0,
+                        })
+                      }
+                      className="w-full rounded-lg border border-white/5 bg-white/[0.03] px-3 py-3 text-sm text-white/90 text-right outline-none focus:border-[#CC0000]/30 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-[10px] uppercase tracking-wider text-white/30">
+                      Unit Price
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={item.unitPrice}
+                      onBlur={(e) =>
+                        updateLineItem(item.tempId, {
+                          unitPrice: Number(e.target.value) || 0,
+                        })
+                      }
+                      onChange={(e) =>
+                        updateLineItem(item.tempId, {
+                          unitPrice: Number(e.target.value) || 0,
+                        })
+                      }
+                      className="price w-full rounded-lg border border-white/5 bg-white/[0.03] px-3 py-3 text-sm text-white/90 text-right outline-none focus:border-[#CC0000]/30 transition-colors"
+                    />
+                  </div>
+                </div>
+
+                {/* Row 4: Hours + Rate (side by side) */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="mb-1 block text-[10px] uppercase tracking-wider text-white/30">
+                      Labor Hours
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      step="0.25"
+                      value={item.laborHours}
+                      onBlur={(e) =>
+                        updateLineItem(item.tempId, {
+                          laborHours: Number(e.target.value) || 0,
+                        })
+                      }
+                      onChange={(e) =>
+                        updateLineItem(item.tempId, {
+                          laborHours: Number(e.target.value) || 0,
+                        })
+                      }
+                      className="w-full rounded-lg border border-white/5 bg-white/[0.03] px-3 py-3 text-sm text-white/90 text-right outline-none focus:border-[#CC0000]/30 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-[10px] uppercase tracking-wider text-white/30">
+                      Labor Rate
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={item.laborRate || laborRate}
+                      onBlur={(e) =>
+                        updateLineItem(item.tempId, {
+                          laborRate: Number(e.target.value) || 0,
+                        })
+                      }
+                      onChange={(e) =>
+                        updateLineItem(item.tempId, {
+                          laborRate: Number(e.target.value) || 0,
+                        })
+                      }
+                      className="price w-full rounded-lg border border-white/5 bg-white/[0.03] px-3 py-3 text-sm text-white/90 text-right outline-none focus:border-[#CC0000]/30 transition-colors"
+                    />
+                  </div>
+                </div>
+
+                {/* Computed totals + delete */}
+                <div className="flex items-center justify-between border-t border-white/5 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => removeLineItem(item.tempId)}
+                    className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium text-red-400/70 transition-colors hover:bg-red-500/10 hover:text-red-400 active:scale-95"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Delete
+                  </button>
+                  <div className="text-right space-y-0.5">
+                    <p className="text-[10px] text-white/40">
+                      Mat: <span className="price text-white/60">{fmt(materialCost)}</span>
+                      {" "}&middot;{" "}
+                      Labor: <span className="price text-white/60">{fmt(laborCost)}</span>
+                    </p>
+                    <p className="price text-sm font-semibold text-white">
+                      {fmt(lineTotal)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       ) : (
+        /* ============================================================= */
+        /* DESKTOP: TABLE                                                */
+        /* ============================================================= */
         <div className="overflow-x-auto rounded-xl border border-white/5 bg-black/20">
           <table className="w-full text-left text-sm">
             <thead>
@@ -870,21 +1136,11 @@ function StepBuildEstimate({
                 <th className="px-3 py-3 font-medium">Category</th>
                 <th className="w-20 px-3 py-3 font-medium text-right">Qty</th>
                 <th className="w-20 px-3 py-3 font-medium">Unit</th>
-                <th className="w-28 px-3 py-3 font-medium text-right">
-                  Unit Price
-                </th>
-                <th className="w-20 px-3 py-3 font-medium text-right">
-                  Labor Hrs
-                </th>
-                <th className="w-28 px-3 py-3 font-medium text-right">
-                  Labor Rate
-                </th>
-                <th className="w-28 px-3 py-3 font-medium text-right">
-                  Material $
-                </th>
-                <th className="w-28 px-3 py-3 font-medium text-right">
-                  Labor $
-                </th>
+                <th className="w-24 px-3 py-3 font-medium text-right">Unit$</th>
+                <th className="w-20 px-3 py-3 font-medium text-right">Hrs</th>
+                <th className="w-24 px-3 py-3 font-medium text-right">Rate</th>
+                <th className="w-24 px-3 py-3 font-medium text-right">Mat$</th>
+                <th className="w-24 px-3 py-3 font-medium text-right">Labor$</th>
                 <th className="w-28 px-3 py-3 font-medium text-right">Total</th>
                 <th className="w-10 px-3 py-3"></th>
               </tr>
@@ -892,7 +1148,8 @@ function StepBuildEstimate({
             <tbody>
               {lineItems.map((item) => {
                 const materialCost = item.quantity * item.unitPrice;
-                const laborCost = item.laborHours * (item.laborRate || laborRate);
+                const laborCost =
+                  item.laborHours * (item.laborRate || laborRate);
                 const lineTotal = materialCost + laborCost;
 
                 return (
@@ -906,6 +1163,11 @@ function StepBuildEstimate({
                         type="text"
                         value={item.description}
                         onChange={(e) =>
+                          updateLineItem(item.tempId, {
+                            description: e.target.value,
+                          })
+                        }
+                        onBlur={(e) =>
                           updateLineItem(item.tempId, {
                             description: e.target.value,
                           })
@@ -950,6 +1212,11 @@ function StepBuildEstimate({
                             quantity: Number(e.target.value) || 0,
                           })
                         }
+                        onBlur={(e) =>
+                          updateLineItem(item.tempId, {
+                            quantity: Number(e.target.value) || 0,
+                          })
+                        }
                         className="price w-full bg-transparent text-right text-sm text-white/90 outline-none focus:bg-white/[0.03] rounded px-1 py-0.5 transition-colors"
                       />
                     </td>
@@ -959,7 +1226,9 @@ function StepBuildEstimate({
                       <select
                         value={item.unit}
                         onChange={(e) =>
-                          updateLineItem(item.tempId, { unit: e.target.value })
+                          updateLineItem(item.tempId, {
+                            unit: e.target.value,
+                          })
                         }
                         className="w-full bg-transparent text-sm text-white/70 outline-none focus:bg-white/[0.03] rounded px-1 py-0.5 transition-colors cursor-pointer"
                       >
@@ -987,6 +1256,11 @@ function StepBuildEstimate({
                             unitPrice: Number(e.target.value) || 0,
                           })
                         }
+                        onBlur={(e) =>
+                          updateLineItem(item.tempId, {
+                            unitPrice: Number(e.target.value) || 0,
+                          })
+                        }
                         className="price w-full bg-transparent text-right text-sm text-white/90 outline-none focus:bg-white/[0.03] rounded px-1 py-0.5 transition-colors"
                       />
                     </td>
@@ -1003,6 +1277,11 @@ function StepBuildEstimate({
                             laborHours: Number(e.target.value) || 0,
                           })
                         }
+                        onBlur={(e) =>
+                          updateLineItem(item.tempId, {
+                            laborHours: Number(e.target.value) || 0,
+                          })
+                        }
                         className="price w-full bg-transparent text-right text-sm text-white/90 outline-none focus:bg-white/[0.03] rounded px-1 py-0.5 transition-colors"
                       />
                     </td>
@@ -1015,6 +1294,11 @@ function StepBuildEstimate({
                         step="0.01"
                         value={item.laborRate || laborRate}
                         onChange={(e) =>
+                          updateLineItem(item.tempId, {
+                            laborRate: Number(e.target.value) || 0,
+                          })
+                        }
+                        onBlur={(e) =>
                           updateLineItem(item.tempId, {
                             laborRate: Number(e.target.value) || 0,
                           })
@@ -1055,8 +1339,8 @@ function StepBuildEstimate({
             </tbody>
           </table>
 
-          {/* Sticky totals footer */}
-          <div className="sticky bottom-0 flex items-center justify-end gap-8 border-t border-white/10 bg-black/40 px-4 py-3 backdrop-blur-md">
+          {/* Desktop totals footer */}
+          <div className="flex items-center justify-end gap-8 border-t border-white/10 bg-black/40 px-4 py-3 backdrop-blur-md">
             <div className="text-right">
               <p className="text-xs uppercase tracking-wider text-white/40">
                 Material Subtotal
@@ -1084,6 +1368,40 @@ function StepBuildEstimate({
           </div>
         </div>
       )}
+
+      {/* ============================================================= */}
+      {/* MOBILE: STICKY RUNNING TOTALS BAR                             */}
+      {/* ============================================================= */}
+      {isMobile && lineItems.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/10 bg-black/80 px-4 py-3 backdrop-blur-xl">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <p className="text-[10px] uppercase tracking-wider text-white/40">
+                Materials
+              </p>
+              <p className="price text-xs font-medium text-white/70">
+                {fmt(totals.materialSubtotal)}
+              </p>
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-[10px] uppercase tracking-wider text-white/40">
+                Labor
+              </p>
+              <p className="price text-xs font-medium text-white/70">
+                {fmt(totals.laborSubtotal)}
+              </p>
+            </div>
+            <div className="space-y-0.5 text-right">
+              <p className="text-[10px] uppercase tracking-wider text-white/40">
+                Direct Cost
+              </p>
+              <p className="price text-sm font-bold text-white">
+                {fmt(totals.directCost)}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1097,6 +1415,8 @@ interface StepMarkupReviewProps {
   setOverheadPct: (v: number) => void;
   profitPct: number;
   setProfitPct: (v: number) => void;
+  laborRate: number;
+  setLaborRate: (v: number) => void;
   totals: {
     materialSubtotal: number;
     laborSubtotal: number;
@@ -1111,6 +1431,7 @@ interface StepMarkupReviewProps {
   setNotes: (v: string) => void;
   terms: string;
   setTerms: (v: string) => void;
+  isMobile: boolean;
 }
 
 function StepMarkupReview({
@@ -1118,61 +1439,144 @@ function StepMarkupReview({
   setOverheadPct,
   profitPct,
   setProfitPct,
+  laborRate,
+  setLaborRate,
   totals,
   notes,
   setNotes,
   terms,
   setTerms,
+  isMobile,
 }: StepMarkupReviewProps) {
+  // Local state for slider-driven inputs
+  const [localOverhead, setLocalOverhead] = useState(
+    (overheadPct * 100).toFixed(1)
+  );
+  const [localProfit, setLocalProfit] = useState(
+    (profitPct * 100).toFixed(1)
+  );
+  const [localLaborRate, setLocalLaborRate] = useState(String(laborRate));
+
+  // Sync from store when values change externally
+  useEffect(() => {
+    setLocalOverhead((overheadPct * 100).toFixed(1));
+  }, [overheadPct]);
+  useEffect(() => {
+    setLocalProfit((profitPct * 100).toFixed(1));
+  }, [profitPct]);
+  useEffect(() => {
+    setLocalLaborRate(String(laborRate));
+  }, [laborRate]);
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       <div>
-        <h2 className="text-xl font-semibold text-white">Markup &amp; Review</h2>
+        <h2 className="text-lg sm:text-xl font-semibold text-white">
+          Markup &amp; Review
+        </h2>
         <p className="mt-1 text-sm text-white/50">
           Set overhead and profit margins, then review the full breakdown.
         </p>
       </div>
 
       {/* Markup inputs */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-5 sm:gap-6 md:grid-cols-3">
+        {/* Overhead % */}
         <div>
           <Label className="mb-1.5 text-white/70">Overhead %</Label>
-          <div className="flex items-center gap-3">
-            <Input
-              type="number"
+          <div className="space-y-2">
+            <input
+              type="range"
               min={0}
-              max={100}
+              max={50}
               step={0.5}
-              value={(overheadPct * 100).toFixed(1)}
-              onChange={(e) =>
-                setOverheadPct((Number(e.target.value) || 0) / 100)
-              }
-              className="glass-input w-28 text-right"
+              value={overheadPct * 100}
+              onChange={(e) => {
+                const val = Number(e.target.value);
+                setOverheadPct(val / 100);
+                setLocalOverhead(val.toFixed(1));
+              }}
+              className="w-full accent-[#CC0000] h-2 cursor-pointer"
             />
-            <span className="text-sm text-white/40">%</span>
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                step={0.5}
+                value={localOverhead}
+                onChange={(e) => setLocalOverhead(e.target.value)}
+                onBlur={(e) => {
+                  const val = Number(e.target.value) || 0;
+                  setOverheadPct(val / 100);
+                }}
+                className="glass-input w-24 text-right h-12 sm:h-10"
+              />
+              <span className="text-sm text-white/40">%</span>
+            </div>
           </div>
         </div>
+
+        {/* Profit % */}
         <div>
           <Label className="mb-1.5 text-white/70">Profit %</Label>
-          <div className="flex items-center gap-3">
+          <div className="space-y-2">
+            <input
+              type="range"
+              min={0}
+              max={50}
+              step={0.5}
+              value={profitPct * 100}
+              onChange={(e) => {
+                const val = Number(e.target.value);
+                setProfitPct(val / 100);
+                setLocalProfit(val.toFixed(1));
+              }}
+              className="w-full accent-[#CC0000] h-2 cursor-pointer"
+            />
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                step={0.5}
+                value={localProfit}
+                onChange={(e) => setLocalProfit(e.target.value)}
+                onBlur={(e) => {
+                  const val = Number(e.target.value) || 0;
+                  setProfitPct(val / 100);
+                }}
+                className="glass-input w-24 text-right h-12 sm:h-10"
+              />
+              <span className="text-sm text-white/40">%</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Labor Rate */}
+        <div>
+          <Label className="mb-1.5 text-white/70">Default Labor Rate</Label>
+          <div className="flex items-center gap-2 mt-[calc(0.5rem+8px+0.5rem)]">
+            <span className="text-sm text-white/40">$</span>
             <Input
               type="number"
               min={0}
-              max={100}
-              step={0.5}
-              value={(profitPct * 100).toFixed(1)}
-              onChange={(e) =>
-                setProfitPct((Number(e.target.value) || 0) / 100)
-              }
-              className="glass-input w-28 text-right"
+              step={1}
+              value={localLaborRate}
+              onChange={(e) => setLocalLaborRate(e.target.value)}
+              onBlur={(e) => {
+                const val = Number(e.target.value) || 0;
+                setLaborRate(val);
+              }}
+              className="glass-input w-28 text-right h-12 sm:h-10"
             />
-            <span className="text-sm text-white/40">%</span>
+            <span className="text-sm text-white/40">/hr</span>
           </div>
         </div>
       </div>
 
       {/* Breakdown */}
-      <div className="rounded-xl border border-white/5 bg-black/20 p-6">
+      <div className="rounded-xl border border-white/5 bg-black/20 p-4 sm:p-6">
         <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-white/50">
           Cost Breakdown
         </h3>
@@ -1190,11 +1594,7 @@ function StepMarkupReview({
 
           <div className="my-4 h-px bg-white/10" />
 
-          <BreakdownRow
-            label="Direct Cost"
-            value={totals.directCost}
-            bold
-          />
+          <BreakdownRow label="Direct Cost" value={totals.directCost} bold />
           <BreakdownRow
             label={`Overhead (${pct(overheadPct)})`}
             value={totals.overhead}
@@ -1211,8 +1611,10 @@ function StepMarkupReview({
           <div className="my-4 h-px bg-[#CC0000]/30" />
 
           <div className="flex items-center justify-between">
-            <span className="text-lg font-bold text-white">GRAND TOTAL</span>
-            <span className="price text-2xl font-bold text-[#CC0000]">
+            <span className="text-base sm:text-lg font-bold text-white">
+              GRAND TOTAL
+            </span>
+            <span className="price text-xl sm:text-2xl font-bold text-[#CC0000]">
               {fmt(totals.grandTotal)}
             </span>
           </div>
@@ -1220,7 +1622,7 @@ function StepMarkupReview({
       </div>
 
       {/* Notes & Terms */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-5 sm:gap-6 md:grid-cols-2">
         <div>
           <Label className="mb-1.5 text-white/70">Notes</Label>
           <Textarea
@@ -1232,7 +1634,9 @@ function StepMarkupReview({
           />
         </div>
         <div>
-          <Label className="mb-1.5 text-white/70">Terms &amp; Conditions</Label>
+          <Label className="mb-1.5 text-white/70">
+            Terms &amp; Conditions
+          </Label>
           <Textarea
             placeholder="Payment terms, warranty info, etc."
             rows={5}
@@ -1321,6 +1725,8 @@ interface StepExportProps {
   saveAsDraft: () => void;
   downloadExcel: () => void;
   downloadPdf: () => void;
+  reset: () => void;
+  isMobile: boolean;
 }
 
 function StepExport({
@@ -1335,25 +1741,29 @@ function StepExport({
   saveAsDraft,
   downloadExcel,
   downloadPdf,
+  reset,
+  isMobile,
 }: StepExportProps) {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       <div>
-        <h2 className="text-xl font-semibold text-white">Export Estimate</h2>
+        <h2 className="text-lg sm:text-xl font-semibold text-white">
+          Export Estimate
+        </h2>
         <p className="mt-1 text-sm text-white/50">
           Review your estimate summary and save or export.
         </p>
       </div>
 
       {/* Summary card */}
-      <div className="rounded-xl border border-white/5 bg-black/20 p-6">
+      <div className="rounded-xl border border-white/5 bg-black/20 p-4 sm:p-6">
         <div className="grid gap-6 md:grid-cols-2">
           {/* Left: project info */}
           <div className="space-y-3">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-white/50">
               Project
             </h3>
-            <p className="text-lg font-semibold text-white">
+            <p className="text-base sm:text-lg font-semibold text-white">
               {projectInfo.name || "Untitled"}
             </p>
             <p className="text-sm text-white/60">
@@ -1379,7 +1789,7 @@ function StepExport({
           </div>
 
           {/* Right: totals */}
-          <div className="space-y-2 text-right">
+          <div className="space-y-2 md:text-right">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-white/50">
               Totals
             </h3>
@@ -1422,9 +1832,9 @@ function StepExport({
                 </span>
               </p>
               <div className="my-2 h-px bg-[#CC0000]/30" />
-              <p className="text-lg font-bold text-white">
+              <p className="text-base sm:text-lg font-bold text-white">
                 Grand Total:{" "}
-                <span className="price text-2xl text-[#CC0000]">
+                <span className="price text-xl sm:text-2xl text-[#CC0000]">
                   {fmt(totals.grandTotal)}
                 </span>
               </p>
@@ -1434,28 +1844,52 @@ function StepExport({
       </div>
 
       {/* Action buttons */}
-      <div className="flex flex-wrap gap-4">
-        {saved && savedProjectId ? (
-          <div className="flex items-center gap-3 rounded-lg border border-green-500/20 bg-green-500/10 px-5 py-3">
-            <Check className="h-5 w-5 text-green-400" />
-            <div>
+      {saved && savedProjectId ? (
+        /* ---- Success state ---- */
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 rounded-lg border border-green-500/20 bg-green-500/10 px-5 py-4">
+            <Check className="h-6 w-6 shrink-0 text-green-400" />
+            <div className="flex-1">
               <p className="text-sm font-medium text-green-400">
-                Saved as Draft
+                Estimate saved as draft!
               </p>
               <a
                 href={`/projects/${savedProjectId}`}
-                className="text-xs text-green-300/70 underline hover:text-green-300"
+                className="text-sm text-green-300/70 underline hover:text-green-300 transition-colors"
               >
                 View project &rarr;
               </a>
             </div>
           </div>
-        ) : (
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <a
+              href={`/projects/${savedProjectId}`}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#CC0000] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-red-900/30 transition-all hover:bg-[#E60000] active:scale-95"
+            >
+              View Project
+              <ArrowRight className="h-4 w-4" />
+            </a>
+            <button
+              type="button"
+              onClick={() => {
+                reset();
+              }}
+              className="glass glass-hover inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-medium text-white/80 transition-all active:scale-95"
+            >
+              <Plus className="h-4 w-4" />
+              New Estimate
+            </button>
+          </div>
+        </div>
+      ) : (
+        /* ---- Pre-save state ---- */
+        <div className="flex flex-col sm:flex-row flex-wrap gap-3">
           <button
             type="button"
             onClick={saveAsDraft}
             disabled={saving}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#CC0000] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-red-900/30 transition-all hover:bg-[#E60000] disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#CC0000] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-red-900/30 transition-all hover:bg-[#E60000] active:scale-95 disabled:opacity-50"
           >
             {saving ? (
               <>
@@ -1469,26 +1903,26 @@ function StepExport({
               </>
             )}
           </button>
-        )}
 
-        <button
-          type="button"
-          onClick={downloadExcel}
-          className="glass glass-hover inline-flex items-center gap-2 rounded-lg px-6 py-3 text-sm font-medium text-white/80 transition-all"
-        >
-          <FileDown className="h-4 w-4" />
-          Download Excel
-        </button>
+          <button
+            type="button"
+            onClick={downloadExcel}
+            className="glass glass-hover inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-medium text-white/80 transition-all active:scale-95"
+          >
+            <FileDown className="h-4 w-4" />
+            Download Excel
+          </button>
 
-        <button
-          type="button"
-          onClick={downloadPdf}
-          className="glass glass-hover inline-flex items-center gap-2 rounded-lg px-6 py-3 text-sm font-medium text-white/80 transition-all"
-        >
-          <FileDown className="h-4 w-4" />
-          Download PDF
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={downloadPdf}
+            className="glass glass-hover inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-medium text-white/80 transition-all active:scale-95"
+          >
+            <FileDown className="h-4 w-4" />
+            Download PDF
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#0A0A0A"/>
+  <rect x="16" y="16" width="480" height="480" rx="72" fill="#111111" stroke="#CC0000" stroke-width="3" stroke-opacity="0.3"/>
+  <text x="256" y="280" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="180" font-weight="700" fill="#CC0000">⚡</text>
+  <text x="256" y="390" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="56" font-weight="600" fill="white" opacity="0.9">MS</text>
+</svg>

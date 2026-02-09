@@ -6,33 +6,33 @@
 @theme inline {
   --color-background: #0A0A0A;
   --color-foreground: rgba(255, 255, 255, 0.95);
-  --color-card: rgba(255, 255, 255, 0.06);
+  --color-card: rgba(255, 255, 255, 0.05);
   --color-card-foreground: rgba(255, 255, 255, 0.95);
-  --color-popover: rgba(20, 20, 20, 0.95);
+  --color-popover: rgba(18, 18, 18, 0.96);
   --color-popover-foreground: rgba(255, 255, 255, 0.95);
   --color-primary: #CC0000;
   --color-primary-foreground: #ffffff;
-  --color-secondary: rgba(255, 255, 255, 0.08);
+  --color-secondary: rgba(255, 255, 255, 0.07);
   --color-secondary-foreground: rgba(255, 255, 255, 0.85);
-  --color-muted: rgba(255, 255, 255, 0.06);
+  --color-muted: rgba(255, 255, 255, 0.05);
   --color-muted-foreground: rgba(255, 255, 255, 0.5);
-  --color-accent: rgba(255, 255, 255, 0.08);
+  --color-accent: rgba(255, 255, 255, 0.07);
   --color-accent-foreground: rgba(255, 255, 255, 0.95);
   --color-destructive: #CC0000;
   --color-destructive-foreground: #ffffff;
   --color-border: rgba(255, 255, 255, 0.08);
-  --color-input: rgba(255, 255, 255, 0.08);
+  --color-input: rgba(255, 255, 255, 0.07);
   --color-ring: #CC0000;
   --color-chart-1: #CC0000;
   --color-chart-2: #E60000;
   --color-chart-3: #FF3333;
   --color-chart-4: #FF6666;
   --color-chart-5: #FF9999;
-  --color-sidebar: rgba(255, 255, 255, 0.04);
+  --color-sidebar: rgba(255, 255, 255, 0.03);
   --color-sidebar-foreground: rgba(255, 255, 255, 0.85);
   --color-sidebar-primary: #CC0000;
   --color-sidebar-primary-foreground: #ffffff;
-  --color-sidebar-accent: rgba(255, 255, 255, 0.08);
+  --color-sidebar-accent: rgba(255, 255, 255, 0.07);
   --color-sidebar-accent-foreground: rgba(255, 255, 255, 0.95);
   --color-sidebar-border: rgba(255, 255, 255, 0.06);
   --color-sidebar-ring: #CC0000;
@@ -40,114 +40,170 @@
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
   --radius-xl: 1.25rem;
-  --font-sans: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "SF Mono", "Fira Code", "JetBrains Mono", ui-monospace, monospace;
+  --font-sans: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, sans-serif;
+  --font-mono: "SF Mono", "Fira Code", "JetBrains Mono", ui-monospace,
+    monospace;
 }
 
+/* ------------------------------------------------------------------ */
+/*  Root-level custom properties for glass effects                    */
+/* ------------------------------------------------------------------ */
 :root {
-  --glass-bg: rgba(255, 255, 255, 0.06);
-  --glass-bg-hover: rgba(255, 255, 255, 0.09);
-  --glass-bg-active: rgba(255, 255, 255, 0.12);
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-bg-hover: rgba(255, 255, 255, 0.08);
+  --glass-bg-active: rgba(255, 255, 255, 0.11);
   --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-border-hover: rgba(255, 255, 255, 0.15);
-  --glass-blur: 12px;
+  --glass-border-hover: rgba(255, 255, 255, 0.14);
+  --glass-blur: 16px;
   --red-primary: #CC0000;
   --red-dark: #8B0000;
   --red-hover: #E60000;
-  --red-muted: rgba(204, 0, 0, 0.15);
-  --red-glow: 0 0 20px rgba(204, 0, 0, 0.3);
+  --red-muted: rgba(204, 0, 0, 0.12);
+  --red-glow: 0 0 20px rgba(204, 0, 0, 0.25);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* ------------------------------------------------------------------ */
+/*  Body                                                              */
+/* ------------------------------------------------------------------ */
 body {
-  background: linear-gradient(135deg, #0A0A0A 0%, #1A1A1A 50%, #0D0D0D 100%);
+  background: linear-gradient(165deg, #0A0A0A 0%, #111111 50%, #0A0A0A 100%);
   color: rgba(255, 255, 255, 0.95);
   min-height: 100vh;
-  font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  min-height: 100dvh;
+  font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 
-/* Glass utility classes */
+/* ------------------------------------------------------------------ */
+/*  Glass utility classes                                             */
+/* ------------------------------------------------------------------ */
 .glass {
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
+.glass-hover {
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
 .glass-hover:hover {
   background: var(--glass-bg-hover);
   border-color: var(--glass-border-hover);
+  transform: translateY(-1px);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .glass-active {
   background: var(--glass-bg-active);
-  border-color: rgba(204, 0, 0, 0.3);
+  border-color: rgba(204, 0, 0, 0.25);
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  padding: 1.5rem;
 }
 
 .glass-input {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.035);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: var(--radius-md);
   color: rgba(255, 255, 255, 0.95);
-  transition: all 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+  min-height: 44px;
 }
 
 .glass-input:focus {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(204, 0, 0, 0.5);
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(204, 0, 0, 0.45);
   outline: none;
-  box-shadow: 0 0 0 2px rgba(204, 0, 0, 0.15);
+  box-shadow: 0 0 0 3px rgba(204, 0, 0, 0.12);
 }
 
 .glass-input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.28);
 }
 
 .red-glow {
-  box-shadow: 0 8px 32px rgba(204, 0, 0, 0.15);
+  box-shadow:
+    0 8px 32px rgba(204, 0, 0, 0.12),
+    0 0 12px rgba(204, 0, 0, 0.08);
 }
 
-/* Background atmosphere orbs */
+/* ------------------------------------------------------------------ */
+/*  Background atmosphere orbs (subtle)                               */
+/* ------------------------------------------------------------------ */
 .bg-orb {
   position: fixed;
   border-radius: 50%;
-  filter: blur(100px);
-  opacity: 0.5;
+  filter: blur(120px);
+  opacity: 0.35;
   pointer-events: none;
   z-index: 0;
+  will-change: transform;
 }
 
 .bg-orb-1 {
-  width: 600px;
-  height: 600px;
-  background: rgba(204, 0, 0, 0.03);
-  top: -200px;
-  right: -200px;
+  width: 550px;
+  height: 550px;
+  background: rgba(204, 0, 0, 0.025);
+  top: -220px;
+  right: -180px;
 }
 
 .bg-orb-2 {
-  width: 400px;
-  height: 400px;
-  background: rgba(204, 0, 0, 0.02);
-  bottom: -100px;
+  width: 380px;
+  height: 380px;
+  background: rgba(204, 0, 0, 0.018);
+  bottom: -120px;
   left: -100px;
 }
 
-/* Number/price monospace styling */
+/* ------------------------------------------------------------------ */
+/*  Number / price monospace styling                                  */
+/* ------------------------------------------------------------------ */
 .price {
-  font-family: "SF Mono", "Fira Code", ui-monospace, monospace;
+  font-family: "SF Mono", "Fira Code", "JetBrains Mono", ui-monospace,
+    monospace;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
-/* Scrollbar styling */
+/* ------------------------------------------------------------------ */
+/*  Scrollbar styling (thin, rounded, subtle)                         */
+/* ------------------------------------------------------------------ */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -155,19 +211,27 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.16);
 }
 
-/* Animations */
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Animations                                                        */
+/* ------------------------------------------------------------------ */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -176,27 +240,238 @@ body {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.5s ease-out forwards;
+  animation: fadeInUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out forwards;
 }
 
-/* Stagger animations */
-.stagger > * {
-  opacity: 0;
-  animation: fadeInUp 0.5s ease-out forwards;
+.animate-slide-in {
+  animation: slideIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-.stagger > *:nth-child(1) { animation-delay: 0ms; }
-.stagger > *:nth-child(2) { animation-delay: 75ms; }
-.stagger > *:nth-child(3) { animation-delay: 150ms; }
-.stagger > *:nth-child(4) { animation-delay: 225ms; }
-.stagger > *:nth-child(5) { animation-delay: 300ms; }
-.stagger > *:nth-child(6) { animation-delay: 375ms; }
+.animate-scale-in {
+  animation: scaleIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Stagger utility (smooth 60ms delays)                              */
+/* ------------------------------------------------------------------ */
+.stagger > * {
+  opacity: 0;
+  animation: fadeInUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.stagger > *:nth-child(1) {
+  animation-delay: 0ms;
+}
+.stagger > *:nth-child(2) {
+  animation-delay: 60ms;
+}
+.stagger > *:nth-child(3) {
+  animation-delay: 120ms;
+}
+.stagger > *:nth-child(4) {
+  animation-delay: 180ms;
+}
+.stagger > *:nth-child(5) {
+  animation-delay: 240ms;
+}
+.stagger > *:nth-child(6) {
+  animation-delay: 300ms;
+}
+.stagger > *:nth-child(7) {
+  animation-delay: 360ms;
+}
+.stagger > *:nth-child(8) {
+  animation-delay: 420ms;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Reduced motion preference                                         */
+/* ------------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .bg-orb {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Mobile-first: safe-area-inset padding for phones                  */
+/* ------------------------------------------------------------------ */
+@supports (padding: env(safe-area-inset-bottom)) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Mobile bottom navigation bar                                      */
+/* ------------------------------------------------------------------ */
+.mobile-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: rgba(12, 12, 12, 0.82);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+.mobile-nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  height: 56px;
+  max-width: 100%;
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 4px 0;
+  gap: 2px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  transition:
+    color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.mobile-nav-item:active {
+  transform: scale(0.92);
+}
+
+.mobile-nav-item-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  margin-top: 1px;
+}
+
+/* Center "New" action button (prominent red circle) */
+.mobile-nav-center-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #CC0000 0%, #A00000 100%);
+  box-shadow:
+    0 4px 16px rgba(204, 0, 0, 0.35),
+    0 0 0 3px rgba(204, 0, 0, 0.1);
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
+}
+
+.mobile-nav-center-btn:active {
+  transform: scale(0.9);
+  box-shadow:
+    0 2px 8px rgba(204, 0, 0, 0.3),
+    0 0 0 3px rgba(204, 0, 0, 0.15);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Touch-friendly focus states                                       */
+/* ------------------------------------------------------------------ */
+@media (pointer: coarse) {
+  .glass-input,
+  button,
+  a,
+  [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Visible focus for touch (accessibility) */
+  :focus-visible {
+    outline: 2px solid rgba(204, 0, 0, 0.5);
+    outline-offset: 2px;
+  }
+}
+
+/* Keyboard focus ring for all interactive elements */
+:focus-visible {
+  outline: 2px solid rgba(204, 0, 0, 0.5);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Responsive orb sizing on smaller viewports                        */
+/* ------------------------------------------------------------------ */
+@media (max-width: 767px) {
+  .bg-orb-1 {
+    width: 300px;
+    height: 300px;
+    top: -120px;
+    right: -100px;
+    opacity: 0.2;
+  }
+
+  .bg-orb-2 {
+    width: 220px;
+    height: 220px;
+    bottom: -80px;
+    left: -60px;
+    opacity: 0.15;
+  }
+}
