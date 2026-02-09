@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Save, Building2, DollarSign, FileText, Loader2 } from "lucide-react";
+import { Save, Building2, DollarSign, FileText, Loader2, Brain, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 
@@ -23,6 +23,7 @@ const settingsSchema = z.object({
   defaultOverhead: z.number().min(0).max(100, "Max 100%"),
   defaultProfit: z.number().min(0).max(100, "Max 100%"),
   taxRate: z.number().min(0).max(100, "Max 100%"),
+  anthropicApiKey: z.string(),
   defaultTerms: z.string(),
 });
 
@@ -406,6 +407,9 @@ export default function SettingsPage() {
           </div>
         </div>
 
+        {/* ── AI Configuration ─────────────────────────────────────── */}
+        <AIKeySection register={register} />
+
         {/* ── Terms & Conditions (full width) ──────────────────────── */}
         <div className="glass p-5 sm:p-6 space-y-4">
           {/* Section header */}
@@ -446,6 +450,64 @@ export default function SettingsPage() {
           </button>
         </div>
       </form>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  AI Configuration Section                                           */
+/* ------------------------------------------------------------------ */
+
+function AIKeySection({ register }: { register: ReturnType<typeof useForm<SettingsForm>>["register"] }) {
+  const [showKey, setShowKey] = useState(false);
+
+  return (
+    <div className="glass p-5 sm:p-6 space-y-4">
+      <div className="flex items-center gap-2.5">
+        <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-[#CC0000]/20 to-purple-500/10">
+          <Brain className="w-4.5 h-4.5 text-[#CC0000]" />
+        </div>
+        <div>
+          <h2 className="text-base font-light text-white/90 tracking-tight">
+            AI Configuration
+          </h2>
+          <p className="text-xs text-white/35 mt-0.5">
+            Powers automatic estimate generation from uploaded plans
+          </p>
+        </div>
+      </div>
+      <div>
+        <Label className="text-[11px] text-white/50 uppercase tracking-wider font-semibold mb-2 block">
+          Anthropic API Key
+        </Label>
+        <div className="relative">
+          <input
+            {...register("anthropicApiKey")}
+            type={showKey ? "text" : "password"}
+            className="glass-input h-11 px-3.5 pr-12 text-sm w-full rounded-xl font-mono"
+            placeholder="sk-ant-..."
+          />
+          <button
+            type="button"
+            onClick={() => setShowKey(!showKey)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
+          >
+            {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          </button>
+        </div>
+        <p className="text-xs text-white/30 mt-2 leading-relaxed">
+          Required for AI-powered estimate generation. Get your key from{" "}
+          <a
+            href="https://console.anthropic.com/settings/keys"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#CC0000]/70 hover:text-[#CC0000] underline transition-colors"
+          >
+            console.anthropic.com
+          </a>
+          . Uses Claude for analyzing electrical plans.
+        </p>
+      </div>
     </div>
   );
 }

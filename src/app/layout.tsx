@@ -3,9 +3,9 @@ import "./globals.css";
 import { ClientLayout } from "./client-layout";
 
 export const metadata: Metadata = {
-  title: "Bid Estimator | MS Electric",
+  title: "Manny Source Electric Corp. | Bid Estimator",
   description:
-    "Professional electrical contracting bid estimation tool for Manny Source Electric Corp",
+    "AI-powered electrical contracting bid estimation tool for Manny Source Electric Corp",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

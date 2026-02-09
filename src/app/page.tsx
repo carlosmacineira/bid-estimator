@@ -411,10 +411,10 @@ export default function DashboardPage() {
       {/* ─── Header ─── */}
       <div className="animate-fade-in">
         <h1 className="text-2xl font-semibold tracking-tight text-white/95">
-          Dashboard
+          Manny Source Electric Corp.
         </h1>
         <p className="text-sm text-white/45 mt-1">
-          Welcome back, Manuel
+          Bid Estimator Dashboard
         </p>
       </div>
 

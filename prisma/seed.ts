@@ -1,6 +1,19 @@
 import { PrismaClient } from "@prisma/client";
+import { PrismaLibSql } from "@prisma/adapter-libsql";
+import "dotenv/config";
 
-const prisma = new PrismaClient();
+const tursoUrl = process.env.TURSO_DATABASE_URL;
+const tursoToken = process.env.TURSO_AUTH_TOKEN;
+
+let prisma: PrismaClient;
+if (tursoUrl && tursoToken) {
+  const adapter = new PrismaLibSql({ url: tursoUrl, authToken: tursoToken });
+  prisma = new PrismaClient({ adapter });
+} else {
+  const localUrl = process.env.DATABASE_URL || "file:./dev.db";
+  const adapter = new PrismaLibSql({ url: localUrl });
+  prisma = new PrismaClient({ adapter });
+}
 
 async function main() {
   // Seed Settings

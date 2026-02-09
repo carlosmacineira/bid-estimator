@@ -12,6 +12,18 @@ export async function GET(
 
     const documents = await prisma.document.findMany({
       where: { projectId: id },
+      select: {
+        id: true,
+        projectId: true,
+        fileName: true,
+        fileSize: true,
+        fileType: true,
+        filePath: true,
+        tag: true,
+        notes: true,
+        createdAt: true,
+        // Exclude fileData from listing to keep response small
+      },
     });
 
     return NextResponse.json(documents);
@@ -54,13 +66,22 @@ export async function POST(
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const uploadDir = path.join(process.cwd(), "public", "uploads", id);
-    await mkdir(uploadDir, { recursive: true });
 
-    const filePath = path.join(uploadDir, file.name);
-    await writeFile(filePath, buffer);
+    // Store file data as base64 in the database for cloud compatibility
+    const fileDataBase64 = buffer.toString("base64");
 
-    const relativePath = `/uploads/${id}/${file.name}`;
+    // Also try to write to local filesystem (works in dev, may fail in production)
+    let relativePath = `/uploads/${id}/${file.name}`;
+    try {
+      const uploadDir = path.join(process.cwd(), "public", "uploads", id);
+      await mkdir(uploadDir, { recursive: true });
+      const filePath = path.join(uploadDir, file.name);
+      await writeFile(filePath, buffer);
+    } catch {
+      // In production (Vercel), filesystem writes may fail — that's OK
+      // We have the file data stored in the database
+      relativePath = `/db-stored/${id}/${file.name}`;
+    }
 
     const document = await prisma.document.create({
       data: {
@@ -69,12 +90,28 @@ export async function POST(
         fileSize: file.size,
         fileType: file.type,
         filePath: relativePath,
+        fileData: fileDataBase64,
         tag,
       },
     });
 
-    return NextResponse.json(document, { status: 201 });
+    // Return without fileData to keep response small
+    return NextResponse.json(
+      {
+        id: document.id,
+        projectId: document.projectId,
+        fileName: document.fileName,
+        fileSize: document.fileSize,
+        fileType: document.fileType,
+        filePath: document.filePath,
+        tag: document.tag,
+        notes: document.notes,
+        createdAt: document.createdAt,
+      },
+      { status: 201 }
+    );
   } catch (error) {
+    console.error("Document upload error:", error);
     return NextResponse.json(
       { error: "Failed to upload document" },
       { status: 500 }

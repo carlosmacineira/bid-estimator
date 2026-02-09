@@ -28,9 +28,16 @@ interface ProjectInfoDraft {
   description: string;
 }
 
+interface UploadedDoc {
+  id: string;
+  fileName: string;
+  fileSize: number;
+}
+
 interface EstimateState {
   currentStep: number;
   projectInfo: ProjectInfoDraft;
+  uploadedDocs: UploadedDoc[];
   documentIds: string[];
   lineItems: LineItemDraft[];
   overheadPct: number;
@@ -39,13 +46,18 @@ interface EstimateState {
   notes: string;
   terms: string;
   savedProjectId: string | null;
+  aiAnalyzing: boolean;
+  aiError: string | null;
 
   setStep: (step: number) => void;
   nextStep: () => void;
   prevStep: () => void;
   setProjectInfo: (info: Partial<ProjectInfoDraft>) => void;
+  addUploadedDoc: (doc: UploadedDoc) => void;
+  removeUploadedDoc: (id: string) => void;
   addDocumentId: (id: string) => void;
   removeDocumentId: (id: string) => void;
+  setLineItems: (items: Omit<LineItemDraft, "tempId" | "sortOrder">[]) => void;
   addLineItem: (item: Omit<LineItemDraft, "tempId" | "sortOrder">) => void;
   updateLineItem: (tempId: string, updates: Partial<LineItemDraft>) => void;
   removeLineItem: (tempId: string) => void;
@@ -55,6 +67,8 @@ interface EstimateState {
   setNotes: (notes: string) => void;
   setTerms: (terms: string) => void;
   setSavedProjectId: (id: string) => void;
+  setAiAnalyzing: (analyzing: boolean) => void;
+  setAiError: (error: string | null) => void;
   getTotals: () => EstimateTotals;
   reset: () => void;
 }
@@ -78,6 +92,7 @@ export const useEstimateStore = create<EstimateState>()(
     immer((set, get) => ({
       currentStep: 1,
       projectInfo: { ...initialProjectInfo },
+      uploadedDocs: [],
       documentIds: [],
       lineItems: [],
       overheadPct: 0.15,
@@ -86,18 +101,39 @@ export const useEstimateStore = create<EstimateState>()(
       notes: "",
       terms: "",
       savedProjectId: null,
+      aiAnalyzing: false,
+      aiError: null,
 
       setStep: (step) => set({ currentStep: step }),
-      nextStep: () => set((state) => { state.currentStep = Math.min(state.currentStep + 1, 5); }),
+      nextStep: () => set((state) => { state.currentStep = Math.min(state.currentStep + 1, 3); }),
       prevStep: () => set((state) => { state.currentStep = Math.max(state.currentStep - 1, 1); }),
 
       setProjectInfo: (info) => set((state) => {
         Object.assign(state.projectInfo, info);
       }),
 
+      addUploadedDoc: (doc) => set((state) => {
+        state.uploadedDocs.push(doc);
+        if (!state.documentIds.includes(doc.id)) {
+          state.documentIds.push(doc.id);
+        }
+      }),
+      removeUploadedDoc: (id) => set((state) => {
+        state.uploadedDocs = state.uploadedDocs.filter((d) => d.id !== id);
+        state.documentIds = state.documentIds.filter((d) => d !== id);
+      }),
+
       addDocumentId: (id) => set((state) => { state.documentIds.push(id); }),
       removeDocumentId: (id) => set((state) => {
         state.documentIds = state.documentIds.filter((d) => d !== id);
+      }),
+
+      setLineItems: (items) => set((state) => {
+        state.lineItems = items.map((item, idx) => ({
+          ...item,
+          tempId: generateId(),
+          sortOrder: idx,
+        }));
       }),
 
       addLineItem: (item) => set((state) => {
@@ -125,6 +161,8 @@ export const useEstimateStore = create<EstimateState>()(
       setNotes: (notes) => set({ notes }),
       setTerms: (terms) => set({ terms }),
       setSavedProjectId: (id) => set({ savedProjectId: id }),
+      setAiAnalyzing: (analyzing) => set({ aiAnalyzing: analyzing }),
+      setAiError: (error) => set({ aiError: error }),
 
       getTotals: () => {
         const state = get();
@@ -144,6 +182,7 @@ export const useEstimateStore = create<EstimateState>()(
       reset: () => set({
         currentStep: 1,
         projectInfo: { ...initialProjectInfo },
+        uploadedDocs: [],
         documentIds: [],
         lineItems: [],
         overheadPct: 0.15,
@@ -152,6 +191,8 @@ export const useEstimateStore = create<EstimateState>()(
         notes: "",
         terms: "",
         savedProjectId: null,
+        aiAnalyzing: false,
+        aiError: null,
       }),
     })),
     {

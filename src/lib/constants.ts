@@ -45,11 +45,9 @@ export const UNITS = [
 ] as const;
 
 export const WIZARD_STEPS = [
-  { id: 1, title: "Project Info", description: "Basic project details" },
-  { id: 2, title: "Upload Plans", description: "Drawings & documents" },
-  { id: 3, title: "Build Estimate", description: "Line items & costs" },
-  { id: 4, title: "Markup & Review", description: "Overhead & profit" },
-  { id: 5, title: "Export", description: "Save & download" },
+  { id: 1, title: "Project Details", description: "Basic project info" },
+  { id: 2, title: "Upload & Analyze", description: "PDF plans → AI estimate" },
+  { id: 3, title: "Review & Export", description: "Edit, adjust & save" },
 ] as const;
 
 export const DOCUMENT_TAGS = [

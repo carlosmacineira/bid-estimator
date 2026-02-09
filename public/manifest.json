@@ -1,7 +1,7 @@
 {
-  "name": "Bid Estimator - MS Electric",
-  "short_name": "Bid Estimator",
-  "description": "Professional electrical contracting bid estimation tool",
+  "name": "Manny Source Electric Corp. - Bid Estimator",
+  "short_name": "MS Estimator",
+  "description": "AI-powered electrical contracting bid estimation tool",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0A0A0A",

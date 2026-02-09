@@ -50,6 +50,7 @@ export async function POST(request: Request) {
         defaultOverhead: 0.15,
         defaultProfit: 0.1,
         taxRate: 0,
+        anthropicApiKey: "",
         defaultTerms: "",
       };
     }

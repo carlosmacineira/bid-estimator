@@ -10,6 +10,7 @@ export async function GET() {
     });
     return NextResponse.json(settings);
   } catch (error) {
+    console.error("Settings GET error:", error);
     return NextResponse.json(
       { error: "Failed to fetch settings" },
       { status: 500 }
@@ -28,12 +29,40 @@ export async function PUT(request: Request) {
       );
     }
 
+    // Only allow known fields to be updated (prevents passing `id` or unknown fields to Prisma)
+    const allowedFields: Record<string, "string" | "number"> = {
+      companyName: "string",
+      address: "string",
+      phone: "string",
+      license: "string",
+      email: "string",
+      website: "string",
+      defaultLaborRate: "number",
+      defaultOverhead: "number",
+      defaultProfit: "number",
+      taxRate: "number",
+      anthropicApiKey: "string",
+      defaultTerms: "string",
+    };
+
+    const data: Record<string, string | number> = {};
+    for (const [key, expectedType] of Object.entries(allowedFields)) {
+      if (key in body) {
+        if (expectedType === "number") {
+          data[key] = Number(body[key]) || 0;
+        } else {
+          data[key] = String(body[key] ?? "");
+        }
+      }
+    }
+
     const settings = await prisma.settings.update({
       where: { id: "default" },
-      data: body,
+      data,
     });
     return NextResponse.json(settings);
   } catch (error) {
+    console.error("Settings PUT error:", error);
     return NextResponse.json(
       { error: "Failed to update settings" },
       { status: 500 }

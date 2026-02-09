@@ -42,10 +42,10 @@ function DesktopSidebar() {
         {!sidebarCollapsed && (
           <div className="overflow-hidden animate-fade-in">
             <span className="text-sm font-semibold tracking-tight text-white/90">
-              MS
+              Manny Source
             </span>
-            <span className="ml-1 text-sm font-medium text-white/40">
-              Electric
+            <span className="ml-1 text-xs font-medium text-white/40">
+              Electric Corp.
             </span>
           </div>
         )}
@@ -97,14 +97,14 @@ function DesktopSidebar() {
         {/* User info */}
         <div className="mb-2 flex items-center gap-3 rounded-lg px-3 py-2">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#CC0000] to-[#8B0000] text-xs font-bold text-white shadow-[0_0_12px_rgba(204,0,0,0.3)]">
-            MD
+            MS
           </div>
           {!sidebarCollapsed && (
             <div className="overflow-hidden animate-fade-in">
               <p className="truncate text-sm font-medium text-white/85">
-                Manuel Dominguez
+                Manny Source
               </p>
-              <p className="truncate text-xs text-white/40">President</p>
+              <p className="truncate text-xs text-white/40">Electric Corp.</p>
             </div>
           )}
         </div>
