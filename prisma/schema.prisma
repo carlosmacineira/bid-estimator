@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id            String   @id @default(cuid())
+  name          String
+  clientName    String
+  clientCompany String?
+  address       String
+  city          String
+  state         String   @default("FL")
+  zip           String
+  type          String   @default("commercial")
+  status        String   @default("draft")
+  description   String?
+  overheadPct   Float    @default(0.15)
+  profitPct     Float    @default(0.10)
+  laborRate     Float    @default(65.0)
+  notes         String?
+  terms         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lineItems     LineItem[]
+  documents     Document[]
+}
+
+model LineItem {
+  id          String    @id @default(cuid())
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  description String
+  category    String
+  quantity    Float
+  unit        String    @default("each")
+  unitPrice   Float     @default(0)
+  laborHours  Float     @default(0)
+  laborRate   Float?
+  sortOrder   Int       @default(0)
+  materialId  String?
+  material    Material? @relation(fields: [materialId], references: [id], onDelete: SetNull)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Material {
+  id        String     @id @default(cuid())
+  name      String
+  sku       String?
+  category  String
+  unit      String
+  unitPrice Float
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  lineItems LineItem[]
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  fileName  String
+  fileSize  Int
+  fileType  String   @default("application/pdf")
+  filePath  String
+  tag       String?
+  notes     String?
+  createdAt DateTime @default(now())
+}
+
+model Settings {
+  id               String @id @default("default")
+  companyName      String @default("Manny Source Electric Corp")
+  address          String @default("3932 SW 160th St, Miami, FL 33177")
+  phone            String @default("(786) 299-2168")
+  license          String @default("ER13016064")
+  email            String @default("")
+  website          String @default("mannysourceelectric.com")
+  defaultLaborRate Float  @default(65.0)
+  defaultOverhead  Float  @default(0.15)
+  defaultProfit    Float  @default(0.10)
+  taxRate          Float  @default(0)
+  defaultTerms     String @default("Payment terms: Net 30. This estimate is valid for 30 days from the date of issue. All work performed in accordance with the National Electrical Code (NEC) and Florida Building Code (FBC). Permit fees not included unless specified. Manny Source Electric Corp — FL License #22E000394 / ER13016064.")
+}
