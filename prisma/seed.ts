@@ -1,19 +1,14 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaLibSql } from "@prisma/adapter-libsql";
+import { PrismaNeon } from "@prisma/adapter-neon";
 import "dotenv/config";
 
-const tursoUrl = process.env.TURSO_DATABASE_URL;
-const tursoToken = process.env.TURSO_AUTH_TOKEN;
-
-let prisma: PrismaClient;
-if (tursoUrl && tursoToken) {
-  const adapter = new PrismaLibSql({ url: tursoUrl, authToken: tursoToken });
-  prisma = new PrismaClient({ adapter });
-} else {
-  const localUrl = process.env.DATABASE_URL || "file:./dev.db";
-  const adapter = new PrismaLibSql({ url: localUrl });
-  prisma = new PrismaClient({ adapter });
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL is required for seeding. Set it in your .env file.");
 }
+
+const adapter = new PrismaNeon({ connectionString: databaseUrl });
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   // Seed Settings
@@ -123,13 +118,26 @@ async function main() {
     { name: "Zip Ties 8in (100pk)", sku: "MISC-ZIP", category: "Miscellaneous", unit: "pack", unitPrice: 3.98 },
   ];
 
+  // Clear existing materials to avoid duplicates on re-seed
+  await prisma.material.deleteMany();
+
   for (const mat of materials) {
     await prisma.material.create({ data: mat });
   }
 
   console.log(`Seeded ${materials.length} materials`);
 
-  // Seed a sample project
+  // Seed a sample project (only if it doesn't exist)
+  const existingProject = await prisma.project.findFirst({
+    where: { name: "Office TI - Suite 200 Electrical" },
+  });
+
+  if (existingProject) {
+    console.log("Sample project already exists, skipping");
+    console.log("Database seeded successfully!");
+    return;
+  }
+
   const project = await prisma.project.create({
     data: {
       name: "Office TI - Suite 200 Electrical",

@@ -1,28 +1,20 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaLibSql } from "@prisma/adapter-libsql";
+import { PrismaNeon } from "@prisma/adapter-neon";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
 function createPrismaClient(): PrismaClient {
-  const tursoUrl = process.env.TURSO_DATABASE_URL;
-  const tursoToken = process.env.TURSO_AUTH_TOKEN;
+  const databaseUrl = process.env.DATABASE_URL;
 
-  // If Turso credentials are provided, use cloud database
-  if (tursoUrl && tursoToken) {
-    const adapter = new PrismaLibSql({
-      url: tursoUrl,
-      authToken: tursoToken,
-    });
-    return new PrismaClient({ adapter });
+  if (!databaseUrl) {
+    throw new Error(
+      "DATABASE_URL environment variable is not set. Please configure your Neon Postgres connection string."
+    );
   }
 
-  // Otherwise, use local SQLite via libSQL adapter (Prisma v7 requires an adapter)
-  const localUrl = process.env.DATABASE_URL || "file:./prisma/dev.db";
-  const adapter = new PrismaLibSql({
-    url: localUrl,
-  });
+  const adapter = new PrismaNeon({ connectionString: databaseUrl });
   return new PrismaClient({ adapter });
 }
 

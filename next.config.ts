@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   // Allow connections from any device on the local network
   allowedDevOrigins: ["*"],
   // Optimize for serverless deployment
-  serverExternalPackages: ["pdf-parse", "@libsql/client"],
+  serverExternalPackages: ["pdf-parse"],
 };
 
 export default nextConfig;

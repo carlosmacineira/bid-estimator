@@ -7,7 +7,7 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    // Local SQLite for development and migrations
-    url: env("DATABASE_URL"),
+    // Use DIRECT_DATABASE_URL for migrations (non-pooled Neon connection)
+    url: env("DIRECT_DATABASE_URL"),
   },
 });
